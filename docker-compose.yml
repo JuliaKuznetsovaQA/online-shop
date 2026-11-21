@@ -1,0 +1,27 @@
+services:
+  postgres-db:
+    image: postgres:15-alpine
+    container_name: market_postgres
+    environment:
+      POSTGRES_USER: market_user
+      POSTGRES_PASSWORD: market_password
+      POSTGRES_DB: online_market_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - pg_market_data:/var/lib/postgresql/data
+
+  # Панель управления pgAdmin 4
+  pgadmin4:
+    image: dpage/pgadmin4
+    container_name: market_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@market.com
+      PGADMIN_DEFAULT_PASSWORD: admin_password
+    ports:
+      - "8080:80"
+    depends_on:
+      - postgres-db
+
+volumes:
+  pg_market_data:
