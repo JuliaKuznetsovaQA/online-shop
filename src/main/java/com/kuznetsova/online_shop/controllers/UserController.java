@@ -1,7 +1,7 @@
 package com.kuznetsova.online_shop.controllers;
 
-import com.kuznetsova.online_shop.dao.UserDAO;
 import com.kuznetsova.online_shop.models.User;
+import com.kuznetsova.online_shop.repositories.UserRepository;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -13,22 +13,22 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/users")
 public class UserController {
 
-    private final UserDAO userDAO;
+    private final UserRepository userRepository;
 
     @Autowired
-    public UserController(UserDAO userDAO) {
-        this.userDAO = userDAO;
+    public UserController(UserRepository userRepository) {
+        this.userRepository = userRepository;
     }
 
     @GetMapping()
-    public String index(Model model) {
-        model.addAttribute("users", userDAO.index());
+    public String getAll(Model model) {
+        model.addAttribute("users", userRepository.findAll());
         return "users/index";
     }
 
     @GetMapping("/{id}")
-    public String show(@PathVariable("id") int id, Model model) {
-        model.addAttribute("user", userDAO.show(id));
+    public String show(@PathVariable("id") Long id, Model model) {
+        model.addAttribute("user", userRepository.findById(id).orElse(null));
         return "users/show";
     }
 
@@ -42,29 +42,30 @@ public class UserController {
         if (result.hasErrors()) {
             return "users/new";
         }
-        userDAO.save(user);
+        userRepository.save(user);
         return "redirect:/users";
     }
 
     @GetMapping("/{id}/edit")
-    public String edit(@PathVariable("id") int id, Model model) {
-        model.addAttribute("user", userDAO.show(id));
+    public String edit(@PathVariable("id") Long id, Model model) {
+        model.addAttribute("user", userRepository.findById(id).orElse(null));
         return "users/edit";
     }
 
     @PatchMapping("/{id}")
-    public String update(@PathVariable("id") int id, @ModelAttribute("user") @Valid User user,
+    public String update(@PathVariable("id") Long id, @ModelAttribute("user") @Valid User user,
                          BindingResult result) {
         if (result.hasErrors()) {
             return "users/edit";
         }
-        userDAO.update(id, user);
+        user.setId(id);
+        userRepository.save(user);
         return "redirect:/users";
     }
 
     @DeleteMapping("/{id}")
-    public String delete(@PathVariable("id") int id) {
-        userDAO.delete(id);
+    public String delete(@PathVariable("id") Long id) {
+        userRepository.deleteById(id);
         return "redirect:/users";
     }
 }
