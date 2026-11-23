@@ -2,7 +2,7 @@ package com.kuznetsova.online_shop.controllers;
 
 import com.kuznetsova.online_shop.models.Product;
 import com.kuznetsova.online_shop.repositories.CategoryRepository;
-import com.kuznetsova.online_shop.repositories.ProductRepository;
+import com.kuznetsova.online_shop.services.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,7 +18,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ProductController {
 
-    private final ProductRepository productRepository;
+    private final ProductService productService;
     private final CategoryRepository categoryRepository;
 
     @GetMapping
@@ -33,10 +33,10 @@ public class ProductController {
         List<Product> products;
 
         if (id != null) {
-            products = productRepository.findById(id).map(List::of).orElse(List.of());
+            products = productService.findById(id).map(List::of).orElse(List.of());
         } else {
             String searchTitle = (title != null) ? title.trim() : "";
-            products = productRepository.searchProducts(searchTitle, categoryId, minPrice, maxPrice);
+            products = productService.searchProducts(searchTitle, categoryId, minPrice, maxPrice);
         }
 
         model.addAttribute("products", products);
