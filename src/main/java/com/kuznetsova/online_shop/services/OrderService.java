@@ -7,4 +7,5 @@ import java.util.Map;
 public interface OrderService {
     Order createOrder(Long userId, Map<Long, Integer> productQuantities);
     List<Order> getAllOrders();
+    List<Order> getUserOrders(Long userId);
 }

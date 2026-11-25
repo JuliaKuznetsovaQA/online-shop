@@ -24,6 +24,7 @@ public class User {
 
     @NotEmpty(message = "Email should not be empty")
     @Email(message = "Email should be valid")
+    @Column(unique = true, nullable = false)
     private String email;
 
     @NotEmpty(message = "Password should not be empty")

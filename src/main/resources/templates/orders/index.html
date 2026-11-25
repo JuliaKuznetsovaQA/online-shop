@@ -3,96 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <title>Оформление заказа</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
-<h1>Оформление заказа</h1>
+<div class="container">
+    <h1>Оформление заказа</h1>
 
-<p>
-    <a href="/products">Каталог товаров</a> |
-    <a href="/users">Пользователи</a>
-</p>
+    <p>
+        <a href="/products">Каталог товаров</a> |
+        <a href="/users">Пользователи</a>
+    </p>
 
-<!-- Сообщения об успехе или ошибке транзакции -->
-<div th:if="${param.success}" style="color: green; font-weight: bold;">
-    Заказ успешно оформлен! Остатки на складе обновлены.
-</div>
-<div th:if="${errorMessage}" style="color: red; font-weight: bold;" th:text="${errorMessage}"></div>
+    <!-- Сообщения об успехе или ошибке транзакции -->
+    <div th:if="${param.success}" style="color: green; font-weight: bold;">
+        Заказ успешно оформлен! Остатки на складе обновлены.
+    </div>
+    <div th:if="${errorMessage}" style="color: red; font-weight: bold;" th:text="${errorMessage}"></div>
 
-<br>
+    <br>
 
-<!-- Форма создания мульти-заказа -->
-<form method="post" action="/orders">
-    <label>Покупатель:
-        <select name="userId" required>
-            <option value="">-- Выберите пользователя --</option>
-            <option th:each="user : ${users}"
-                    th:value="${user.id}"
-                    th:text="${user.name + ' (' + user.email + ')'}">
-            </option>
-        </select>
-    </label>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <p>
+            Вы вошли как: <strong th:text="${currentUser.name + ' (' + currentUser.email + ')'}"></strong> |
+            <a href="/products">Каталог товаров</a>
+        </p>
+        <form th:action="@{/logout}" method="post">
+            <button type="submit">Выйти</button>
+        </form>
+    </div>
 
-    <h3>Выберите товары и количество:</h3>
-    <table border="1" cellpadding="8">
+    <form method="post" th:action="@{/orders}">
+
+        <h3>Выберите товары и количество:</h3>
+        <table>
+            <thead>
+            <tr>
+                <th>Товар</th>
+                <th>Категория</th>
+                <th>Цена</th>
+                <th>В наличии</th>
+                <th>Купить (шт.)</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="product : ${products}">
+                <td th:text="${product.title}"></td>
+                <td th:text="${product.category.name}"></td>
+                <td th:text="${product.price}"></td>
+                <td th:text="${product.stockQuantity}"></td>
+                <td>
+                    <!-- Spring автоматически соберёт эти поля в Map<Long, Integer> quantities -->
+                    <input type="number"
+                           th:name="|quantities[${product.id}]|"
+                           min="0"
+                           value="0"
+                           style="width: 60px;">
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <br>
+        <button type="submit">Оформить заказ</button>
+    </form>
+
+    <hr>
+
+    <h2>История заказов</h2>
+    <table>
         <thead>
         <tr>
-            <th>Товар</th>
-            <th>Категория</th>
-            <th>Цена</th>
-            <th>В наличии</th>
-            <th>Купить (шт.)</th>
+            <th>№ Заказа</th>
+            <th>Покупатель</th>
+            <th>Состав заказа</th>
+            <th>Итого</th>
+            <th>Дата</th>
         </tr>
         </thead>
         <tbody>
-        <tr th:each="product : ${products}">
-            <td th:text="${product.title}"></td>
-            <td th:text="${product.category.name}"></td>
-            <td th:text="${product.price}"></td>
-            <td th:text="${product.stockQuantity}"></td>
+        <tr th:each="order : ${orders}">
+            <td th:text="${order.id}"></td>
+            <td th:text="${order.user.name}"></td>
             <td>
-                <!-- Spring автоматически соберёт эти поля в Map<Long, Integer> quantities -->
-                <input type="number"
-                       th:name="|quantities[${product.id}]|"
-                       min="0"
-                       value="0"
-                       style="width: 60px;">
+                <ul>
+                    <li th:each="item : ${order.items}"
+                        th:text="${item.product.title + ' — ' + item.quantity + ' шт. (' + item.price + ' руб.)'}">
+                    </li>
+                </ul>
             </td>
+            <td th:text="${order.totalPrice}"></td>
+            <td th:text="${#temporals.format(order.createdAt, 'dd.MM.yyyy HH:mm')}"></td>
         </tr>
         </tbody>
     </table>
-
-    <br>
-    <button type="submit">Оформить заказ</button>
-</form>
-
-<hr>
-
-<h2>История заказов</h2>
-<table border="1" cellpadding="8">
-    <thead>
-    <tr>
-        <th>№ Заказа</th>
-        <th>Покупатель</th>
-        <th>Состав заказа</th>
-        <th>Итого</th>
-        <th>Дата</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="order : ${orders}">
-        <td th:text="${order.id}"></td>
-        <td th:text="${order.user.name}"></td>
-        <td>
-            <ul>
-                <li th:each="item : ${order.items}"
-                    th:text="${item.product.title + ' — ' + item.quantity + ' шт. (' + item.price + ' руб.)'}">
-                </li>
-            </ul>
-        </td>
-        <td th:text="${order.totalPrice}"></td>
-        <td th:text="${#temporals.format(order.createdAt, 'dd.MM.yyyy HH:mm')}"></td>
-    </tr>
-    </tbody>
-</table>
+</div>
 </body>
 </html>

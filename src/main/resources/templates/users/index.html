@@ -3,16 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <title>Список пользователей</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
+<div class="container">
+    <div th:each="user : ${users}">
+        <a th:href="@{/users/{id}(id=${user.getId()})}" th:text="${user.getName()}">user</a>
+    </div>
 
-<div th:each="user : ${users}">
-    <a th:href="@{/users/{id}(id=${user.getId()})}" th:text="${user.getName()}">user</a>
+    <br/>
+    <hr/>
+
+    <a href="/users/new">Create new user</a>
 </div>
-
-<br/>
-<hr/>
-
-<a href="/users/new">Create new user</a>
 </body>
 </html>

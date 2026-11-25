@@ -1,5 +1,6 @@
 package com.kuznetsova.online_shop.controllers;
 
+import com.kuznetsova.online_shop.models.User;
 import com.kuznetsova.online_shop.repositories.UserRepository;
 import com.kuznetsova.online_shop.services.OrderService;
 import com.kuznetsova.online_shop.services.ProductService;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,16 +28,22 @@ public class OrderController {
     private final ProductService productService;
 
     @GetMapping
-    public String ordersPage(Model model) {
-        fillModel(model);
+    public String ordersPage(Model model, Principal principal) {
+        fillModel(model, principal);
         model.addAttribute("orderForm", new OrderForm());
         return "orders/index";
     }
 
     @PostMapping
-    public String createOrder(@ModelAttribute("orderForm") OrderForm orderForm, Model model) {
+    public String createOrder(@ModelAttribute("orderForm") OrderForm orderForm,
+                              Principal principal,
+                              Model model) {
         try {
-            orderService.createOrder(orderForm.getUserId(), orderForm.getQuantities());
+            // Получаем текущего залогиненного пользователя из БД по email
+            User currentUser = userRepository.findByEmail(principal.getName())
+                    .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
+
+            orderService.createOrder(currentUser.getId(), orderForm.getQuantities());
             return "redirect:/orders?success";
         } catch (ConcurrencyFailureException e) {
             // Сработает при параллельной покупке последнего товара на уровне REPEATABLE_READ
@@ -46,19 +54,19 @@ public class OrderController {
             model.addAttribute("errorMessage", e.getMessage());
         }
 
-        fillModel(model);
+        fillModel(model, principal);
         return "orders/index";
     }
 
-    private void fillModel(Model model) {
-        model.addAttribute("users", userRepository.findAll());
+    private void fillModel(Model model, Principal principal) {
+        User currentUser = userRepository.findByEmail(principal.getName()).orElseThrow();
+        model.addAttribute("currentUser", currentUser);
         model.addAttribute("products", productService.searchProducts("", null, null, null));
         model.addAttribute("orders", orderService.getAllOrders());
     }
 
     @Data
     public static class OrderForm {
-        private Long userId;
         private Map<Long, Integer> quantities = new HashMap<>();
     }
 }
