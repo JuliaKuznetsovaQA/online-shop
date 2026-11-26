@@ -39,7 +39,8 @@ public class ProductController {
             products = productService.findById(id).map(List::of).orElse(List.of());
         } else {
             String searchTitle = (title != null) ? title.trim() : "";
-            products = productService.searchProducts(searchTitle, categoryId, minPrice, maxPrice);
+            products = productService.searchProducts(searchTitle, categoryId, minPrice, maxPrice)
+                    .stream().limit(50).toList();
         }
         if (principal != null) {
             userRepository.findByEmail(principal.getName())

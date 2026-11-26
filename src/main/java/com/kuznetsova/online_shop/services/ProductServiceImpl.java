@@ -22,6 +22,9 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<Product> searchProducts(String title, Long categoryId, BigDecimal minPrice, BigDecimal maxPrice) {
+        if ((title == null || title.isBlank()) && categoryId == null && minPrice != null && maxPrice != null) {
+            return productRepository.findByPriceBetween(minPrice, maxPrice);
+        }
         return productRepository.searchProducts(title, categoryId, minPrice, maxPrice);
     }
 }

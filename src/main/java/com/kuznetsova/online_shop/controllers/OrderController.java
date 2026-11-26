@@ -65,7 +65,9 @@ public class OrderController {
 
     private void fillModel(Model model, Principal principal) {
         model.addAttribute("currentUser", getCurrentUser(principal));
-        model.addAttribute("products", productService.searchProducts("", null, null, null));
+        model.addAttribute("products",
+                productService.searchProducts("", null, null, null)
+                .stream().limit(50).toList());
     }
 
     private User getCurrentUser(Principal principal) {

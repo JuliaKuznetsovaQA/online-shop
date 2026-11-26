@@ -23,4 +23,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
                                  @Param("categoryId") Long categoryId,
                                  @Param("minPrice") BigDecimal minPrice,
                                  @Param("maxPrice") BigDecimal maxPrice);
+
+    @EntityGraph(attributePaths = {"category"})
+    List<Product> findByPriceBetween(BigDecimal minPrice, BigDecimal maxPrice);
+
 }

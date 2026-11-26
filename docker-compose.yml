@@ -1,27 +1,38 @@
 services:
   postgres-db:
-    image: postgres:15-alpine
+    image: postgres:15
     container_name: market_postgres
     environment:
+      POSTGRES_DB: online_market_db
       POSTGRES_USER: market_user
       POSTGRES_PASSWORD: market_password
-      POSTGRES_DB: online_market_db
     ports:
       - "5433:5432"
     volumes:
-      - pg_market_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
 
-  # Панель управления pgAdmin 4
-  pgadmin4:
+  pgadmin:
     image: dpage/pgadmin4
     container_name: market_pgadmin
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@market.com
-      PGADMIN_DEFAULT_PASSWORD: admin_password
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
     ports:
       - "8080:80"
     depends_on:
       - postgres-db
 
+  app:
+    build: .
+    container_name: market_app
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/online_market_db
+      SPRING_DATASOURCE_USERNAME: market_user
+      SPRING_DATASOURCE_PASSWORD: market_password
+    depends_on:
+      - postgres-db
+
 volumes:
-  pg_market_data:
+  postgres_data:

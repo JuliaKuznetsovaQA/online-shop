@@ -9,7 +9,9 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 @Component
 @RequiredArgsConstructor
@@ -35,7 +37,32 @@ public class DataInitializer implements CommandLineRunner {
             Product p5 = new Product(null, "Худи оверсайз", "Теплое черное худи", new BigDecimal("4500.00"), 50, clothes);
 
             productRepository.saveAll(List.of(p1, p2, p3, p4, p5));
-            System.out.println("Тестовые категории и товары успешно загружены в БД!");
+        }
+        if (productRepository.count() < 10_000) {
+            System.out.println("Начинаем генерацию 100 000 товаров...");
+            List<Category> categories = categoryRepository.findAll();
+            Random random = new Random();
+            List<Product> batch = new ArrayList<>(10_000);
+
+            for (int i = 1; i <= 100_000; i++) {
+                Category randomCat = categories.get(random.nextInt(categories.size()));
+                BigDecimal randomPrice = BigDecimal.valueOf(500 + random.nextInt(199_500)); // цена от 500 до 200 000
+                batch.add(new Product(
+                        null,
+                        "Тестовый товар #" + i,
+                        "Описание товара для нагрузочного теста",
+                        randomPrice,
+                        random.nextInt(100) + 1,
+                        randomCat
+                ));
+
+                // Сохраняем порциями по 10 000 штук, чтобы не перегружать память
+                if (batch.size() == 10_000) {
+                    productRepository.saveAll(batch);
+                    batch.clear();
+                }
+            }
+            System.out.println("100 000 товаров успешно загружены в БД!");
         }
     }
 }
