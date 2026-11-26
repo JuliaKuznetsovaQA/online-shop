@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>История заказов</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="container">
+    <div th:if="${param.success}" style="color: green;">Заказ успешно оформлен!</div>
+
+    <h2>История заказов</h2>
+
+    <p>
+        <a href="/">На главную</a> |
+        <a href="/products">Каталог товаров</a> |
+        <a href="/orders/history">История заказов</a>
+    </p>
+
+    <table>
+        <thead>
+        <tr>
+            <th>№ Заказа</th>
+            <th>Состав заказа</th>
+            <th>Итого</th>
+            <th>Дата</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="order : ${orders}">
+            <td th:text="${order.id}"></td>
+            <td>
+                <ul>
+                    <li th:each="item : ${order.items}"
+                        th:text="${item.product.title + ' — ' + item.quantity + ' шт. (' + item.price + ' руб.)'}">
+                    </li>
+                </ul>
+            </td>
+            <td th:text="${order.totalPrice}"></td>
+            <td th:text="${#temporals.format(order.createdAt, 'dd.MM.yyyy HH:mm')}"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

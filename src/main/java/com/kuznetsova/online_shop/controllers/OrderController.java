@@ -28,7 +28,7 @@ public class OrderController {
     private final ProductService productService;
 
     @GetMapping
-    public String ordersPage(Model model, Principal principal) {
+    public String newOrderPage(Model model, Principal principal) {
         fillModel(model, principal);
         model.addAttribute("orderForm", new OrderForm());
         return "orders/index";
@@ -39,12 +39,9 @@ public class OrderController {
                               Principal principal,
                               Model model) {
         try {
-            // Получаем текущего залогиненного пользователя из БД по email
-            User currentUser = userRepository.findByEmail(principal.getName())
-                    .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
-
+            User currentUser = getCurrentUser(principal);
             orderService.createOrder(currentUser.getId(), orderForm.getQuantities());
-            return "redirect:/orders?success";
+            return "redirect:/orders/history?success";
         } catch (ConcurrencyFailureException e) {
             // Сработает при параллельной покупке последнего товара на уровне REPEATABLE_READ
             model.addAttribute("errorMessage",
@@ -58,11 +55,22 @@ public class OrderController {
         return "orders/index";
     }
 
-    private void fillModel(Model model, Principal principal) {
-        User currentUser = userRepository.findByEmail(principal.getName()).orElseThrow();
+    @GetMapping("/history")
+    public String myOrdersPage(Model model, Principal principal) {
+        User currentUser = getCurrentUser(principal);
         model.addAttribute("currentUser", currentUser);
+        model.addAttribute("orders", orderService.getUserOrders(currentUser.getId()));
+        return "orders/history";
+    }
+
+    private void fillModel(Model model, Principal principal) {
+        model.addAttribute("currentUser", getCurrentUser(principal));
         model.addAttribute("products", productService.searchProducts("", null, null, null));
-        model.addAttribute("orders", orderService.getAllOrders());
+    }
+
+    private User getCurrentUser(Principal principal) {
+        return userRepository.findByEmail(principal.getName())
+                .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
     }
 
     @Data
